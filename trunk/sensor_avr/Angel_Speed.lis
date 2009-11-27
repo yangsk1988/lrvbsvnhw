@@ -1,0 +1,1497 @@
+                        .module Angel_Speed.c
+                        .area text(rom, con, rel)
+ 0000                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+                        .area vector(rom, abs)
+                        .org 18
+ 0012 0FC0              rjmp _UART_RX_interrupt
+                        .area text(rom, con, rel)
+ 0000                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+                        .area vector(rom, abs)
+                        .org 20
+ 0014 36C0              rjmp _UART_TX_interrupt
+                        .area text(rom, con, rel)
+ 0000                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+                        .area data(ram, con, rel)
+ 0000                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 0000           _UartData::
+ 0000                   .blkb 1
+                        .area idata
+ 0000 00                .byte 0
+                        .area data(ram, con, rel)
+ 0001                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 0001                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\uartintr.h
+ 0001                   .dbsym e UartData _UartData c
+                        .area text(rom, con, rel)
+ 0000                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\uartintr.h
+ 0000                   .dbfunc e InitUART _InitUART fV
+ 0000           ;              x -> R10
+ 0000           ;       baudrate -> R16
+                        .even
+ 0000           _InitUART::
+ 0000 AA92              st -y,R10
+ 0002                   .dbline -1
+ 0002                   .dbline 38
+ 0002           ; /* Code adapted from Atmel AVR Application Note AVR306
+ 0002           ;  * Interrupt mode driver for UART.
+ 0002           ;  */
+ 0002           ; #include <io8515v.h>
+ 0002           ; #include <macros.h>
+ 0002           ; 
+ 0002           ; /* IMPORTANT: these vector numbers are for 8515! If you use other devices
+ 0002           ;  * you must change them to the different set of numbers.
+ 0002           ;  *
+ 0002           ;  * UART_RX_interrupt set to UART, Rx Complete
+ 0002           ;  * UART_TX_interrupt set to UART Data Register Empty
+ 0002           ;  */
+ 0002           ; 
+ 0002           ; #pragma interrupt_handler UART_RX_interrupt:10 UART_TX_interrupt:11
+ 0002           ; 
+ 0002           ; /* UART Buffer Defines */
+ 0002           ; #define UART_RX_BUFFER_SIZE 128 /* 1,2,4,8,16,32,64,128 or 256 bytes */
+ 0002           ; #define UART_RX_BUFFER_MASK ( UART_RX_BUFFER_SIZE - 1 )
+ 0002           ; #define UART_TX_BUFFER_SIZE 128 /* 1,2,4,8,16,32,64,128 or 256 bytes */
+ 0002           ; #define UART_TX_BUFFER_MASK ( UART_TX_BUFFER_SIZE - 1 )
+ 0002           ; 
+ 0002           ; #if ( UART_RX_BUFFER_SIZE & UART_RX_BUFFER_MASK )
+ 0002           ; #error RX buffer size is not a power of 2
+ 0002           ; #endif
+ 0002           ; 
+ 0002           ; /* Static Variables */
+ 0002           ; static unsigned char UART_RxBuf[UART_RX_BUFFER_SIZE];
+ 0002           ; static volatile unsigned char UART_RxHead;
+ 0002           ; static volatile unsigned char UART_RxTail;
+ 0002           ; static unsigned char UART_TxBuf[UART_TX_BUFFER_SIZE];
+ 0002           ; static volatile unsigned char UART_TxHead;
+ 0002           ; static volatile unsigned char UART_TxTail;
+ 0002           ; 
+ 0002           ; unsigned char UartData =0;
+ 0002           ; 
+ 0002           ; /* initialize UART */
+ 0002           ; void InitUART( unsigned char baudrate )
+ 0002           ;       {
+ 0002                   .dbline 40
+ 0002           ;       unsigned char x;
+ 0002           ;       UBRR = baudrate; /* set the baud rate */
+ 0002 09B9              out 0x9,R16
+ 0004                   .dbline 43
+ 0004           ;       /* enable UART receiver and transmitter, and
+ 0004           ;       receive interrupt */
+ 0004           ;       UCR = ( (1<<RXCIE) | (1<<RXEN) | (1<<TXEN) );
+ 0004 88E9              ldi R24,152
+ 0006 8AB9              out 0xa,R24
+ 0008                   .dbline 44
+ 0008           ;       x = 0; /* flush receive buffer */
+ 0008 AA24              clr R10
+ 000A                   .dbline 45
+ 000A           ;       UART_RxTail = x;
+ 000A A0928200          sts _UART_RxTail,R10
+ 000E                   .dbline 46
+ 000E           ;       UART_RxHead = x;
+ 000E A0928300          sts _UART_RxHead,R10
+ 0012                   .dbline 47
+ 0012           ;       UART_TxTail = x;
+ 0012 A0920000          sts _UART_TxTail,R10
+ 0016                   .dbline 48
+ 0016           ;       UART_TxHead = x;
+ 0016 A0920100          sts _UART_TxHead,R10
+ 001A                   .dbline -2
+ 001A           L1:
+ 001A                   .dbline 0 ; func end
+ 001A A990              ld R10,y+
+ 001C 0895              ret
+ 001E                   .dbsym r x 10 c
+ 001E                   .dbsym r baudrate 16 c
+ 001E                   .dbend
+ 001E                   .dbfunc e UART_RX_interrupt _UART_RX_interrupt fV
+ 001E           ;           data -> R16
+ 001E           ;        tmphead -> R18
+                        .even
+ 001E           _UART_RX_interrupt::
+ 001E 2A92              st -y,R2
+ 0020 0A93              st -y,R16
+ 0022 2A93              st -y,R18
+ 0024 3A93              st -y,R19
+ 0026 8A93              st -y,R24
+ 0028 9A93              st -y,R25
+ 002A EA93              st -y,R30
+ 002C FA93              st -y,R31
+ 002E 2FB6              in R2,0x3f
+ 0030 2A92              st -y,R2
+ 0032                   .dbline -1
+ 0032                   .dbline 53
+ 0032           ;       }
+ 0032           ; 
+ 0032           ; /* interrupt handlers */
+ 0032           ; void UART_RX_interrupt( void )
+ 0032           ; {
+ 0032                   .dbline 56
+ 0032           ;       unsigned char data;
+ 0032           ;       unsigned char tmphead;
+ 0032           ;       data = UDR; /* read the received data */
+ 0032 0CB1              in R16,0xc
+ 0034                   .dbline 58
+ 0034           ;       /* calculate buffer index */
+ 0034           ;       tmphead = ( UART_RxHead + 1 ) & UART_RX_BUFFER_MASK;
+ 0034 20918300          lds R18,_UART_RxHead
+ 0038 2F5F              subi R18,255    ; addi 1
+ 003A 2F77              andi R18,127
+ 003C                   .dbline 59
+ 003C           ;       UART_RxHead = tmphead; /* store new index */
+ 003C 20938300          sts _UART_RxHead,R18
+ 0040                   .dbline 60
+ 0040           ;       if ( tmphead == UART_RxTail )
+ 0040 20908200          lds R2,_UART_RxTail
+ 0044 2215              cp R18,R2
+ 0046 01F4              brne L3
+ 0048           X0:
+ 0048                   .dbline 61
+ 0048           ;               {
+ 0048                   .dbline 63
+ 0048           ;               /* ERROR! Receive buffer overflow */
+ 0048           ;               }
+ 0048           L3:
+ 0048                   .dbline 64
+ 0048           ;       UART_RxBuf[tmphead] = data; /* store received data in buffer */
+ 0048 80E0              ldi R24,<_UART_RxBuf
+ 004A 90E0              ldi R25,>_UART_RxBuf
+ 004C E22F              mov R30,R18
+ 004E FF27              clr R31
+ 0050 E80F              add R30,R24
+ 0052 F91F              adc R31,R25
+ 0054 0083              std z+0,R16
+ 0056                   .dbline -2
+ 0056           L2:
+ 0056                   .dbline 0 ; func end
+ 0056 2990              ld R2,y+
+ 0058 2FBE              out 0x3f,R2
+ 005A F991              ld R31,y+
+ 005C E991              ld R30,y+
+ 005E 9991              ld R25,y+
+ 0060 8991              ld R24,y+
+ 0062 3991              ld R19,y+
+ 0064 2991              ld R18,y+
+ 0066 0991              ld R16,y+
+ 0068 2990              ld R2,y+
+ 006A 1895              reti
+ 006C                   .dbsym r data 16 c
+ 006C                   .dbsym r tmphead 18 c
+ 006C                   .dbend
+ 006C                   .dbfunc e UART_TX_interrupt _UART_TX_interrupt fV
+ 006C           ;        tmptail -> R16
+                        .even
+ 006C           _UART_TX_interrupt::
+ 006C 2A92              st -y,R2
+ 006E 3A92              st -y,R3
+ 0070 0A93              st -y,R16
+ 0072 1A93              st -y,R17
+ 0074 8A93              st -y,R24
+ 0076 9A93              st -y,R25
+ 0078 EA93              st -y,R30
+ 007A FA93              st -y,R31
+ 007C 2FB6              in R2,0x3f
+ 007E 2A92              st -y,R2
+ 0080                   .dbline -1
+ 0080                   .dbline 68
+ 0080           ; }
+ 0080           ; 
+ 0080           ; void UART_TX_interrupt( void )
+ 0080           ; {
+ 0080                   .dbline 72
+ 0080           ;       unsigned char tmptail;
+ 0080           ; 
+ 0080           ;       /* check if all data is transmitted */
+ 0080           ;       if ( UART_TxHead != UART_TxTail )
+ 0080 20900000          lds R2,_UART_TxTail
+ 0084 30900100          lds R3,_UART_TxHead
+ 0088 3214              cp R3,R2
+ 008A 79F0              breq L6
+ 008C           X1:
+ 008C                   .dbline 73
+ 008C           ;               {
+ 008C                   .dbline 75
+ 008C           ;               /* calculate buffer index */
+ 008C           ;               tmptail = ( UART_TxTail + 1 ) & UART_TX_BUFFER_MASK;
+ 008C 00910000          lds R16,_UART_TxTail
+ 0090 0F5F              subi R16,255    ; addi 1
+ 0092 0F77              andi R16,127
+ 0094                   .dbline 76
+ 0094           ;               UART_TxTail = tmptail; /* store new index */
+ 0094 00930000          sts _UART_TxTail,R16
+ 0098                   .dbline 77
+ 0098           ;               UDR = UART_TxBuf[tmptail]; /* start transmition */
+ 0098 80E0              ldi R24,<_UART_TxBuf
+ 009A 90E0              ldi R25,>_UART_TxBuf
+ 009C E02F              mov R30,R16
+ 009E FF27              clr R31
+ 00A0 E80F              add R30,R24
+ 00A2 F91F              adc R31,R25
+ 00A4 2080              ldd R2,z+0
+ 00A6 2CB8              out 0xc,R2
+ 00A8                   .dbline 78
+ 00A8           ;               }
+ 00A8 01C0              rjmp L7
+ 00AA           L6:
+ 00AA                   .dbline 80
+ 00AA           ;       else
+ 00AA           ;               {
+ 00AA                   .dbline 81
+ 00AA           ;               UCR &= ~(1<<UDRIE); /* disable UDRE interrupt */
+ 00AA 5598              cbi 0xa,5
+ 00AC                   .dbline 82
+ 00AC           ;               }
+ 00AC           L7:
+ 00AC                   .dbline -2
+ 00AC           L5:
+ 00AC                   .dbline 0 ; func end
+ 00AC 2990              ld R2,y+
+ 00AE 2FBE              out 0x3f,R2
+ 00B0 F991              ld R31,y+
+ 00B2 E991              ld R30,y+
+ 00B4 9991              ld R25,y+
+ 00B6 8991              ld R24,y+
+ 00B8 1991              ld R17,y+
+ 00BA 0991              ld R16,y+
+ 00BC 3990              ld R3,y+
+ 00BE 2990              ld R2,y+
+ 00C0 1895              reti
+ 00C2                   .dbsym r tmptail 16 c
+ 00C2                   .dbend
+ 00C2                   .dbfunc e ReceiveByte _ReceiveByte fc
+ 00C2           ;        tmptail -> R16
+                        .even
+ 00C2           _ReceiveByte::
+ 00C2                   .dbline -1
+ 00C2                   .dbline 87
+ 00C2           ;       }
+ 00C2           ; 
+ 00C2           ; /* Read and write functions */
+ 00C2           ; unsigned char ReceiveByte( void )
+ 00C2           ;       {
+ 00C2                   .dbline 90
+ 00C2           ;       unsigned char tmptail;
+ 00C2           ; 
+ 00C2           ;       if(UART_RxHead == UART_RxTail)//do not wait if no data,return -1;
+ 00C2 20908200          lds R2,_UART_RxTail
+ 00C6 30908300          lds R3,_UART_RxHead
+ 00CA 3214              cp R3,R2
+ 00CC 11F4              brne L9
+ 00CE           X2:
+ 00CE                   .dbline 91
+ 00CE           ;       return 0xFF;
+ 00CE 0FEF              ldi R16,255
+ 00D0 0DC0              rjmp L8
+ 00D2           L9:
+ 00D2                   .dbline 94
+ 00D2           ;       //while ( UART_RxHead == UART_RxTail ) /* wait for incomming data */
+ 00D2           ;               //;
+ 00D2           ;       tmptail = ( UART_RxTail + 1 ) & UART_RX_BUFFER_MASK;/* calculate buffer index */
+ 00D2 00918200          lds R16,_UART_RxTail
+ 00D6 0F5F              subi R16,255    ; addi 1
+ 00D8 0F77              andi R16,127
+ 00DA                   .dbline 95
+ 00DA           ;       UART_RxTail = tmptail; /* store new index */
+ 00DA 00938200          sts _UART_RxTail,R16
+ 00DE                   .dbline 96
+ 00DE           ;       return UART_RxBuf[tmptail]; /* return data */
+ 00DE 80E0              ldi R24,<_UART_RxBuf
+ 00E0 90E0              ldi R25,>_UART_RxBuf
+ 00E2 E02F              mov R30,R16
+ 00E4 FF27              clr R31
+ 00E6 E80F              add R30,R24
+ 00E8 F91F              adc R31,R25
+ 00EA 0081              ldd R16,z+0
+ 00EC                   .dbline -2
+ 00EC           L8:
+ 00EC                   .dbline 0 ; func end
+ 00EC 0895              ret
+ 00EE                   .dbsym r tmptail 16 c
+ 00EE                   .dbend
+ 00EE                   .dbfunc e TransmitByte _TransmitByte fV
+ 00EE           ;        tmphead -> R20
+ 00EE           ;           data -> R16
+                        .even
+ 00EE           _TransmitByte::
+ 00EE 4A93              st -y,R20
+ 00F0 5A93              st -y,R21
+ 00F2                   .dbline -1
+ 00F2                   .dbline 100
+ 00F2           ;       }
+ 00F2           ; 
+ 00F2           ; void TransmitByte( unsigned char data )
+ 00F2           ;       {
+ 00F2                   .dbline 103
+ 00F2           ;       unsigned char tmphead;
+ 00F2           ;       /* calculate buffer index */
+ 00F2           ;       tmphead = ( UART_TxHead + 1 ) & UART_TX_BUFFER_MASK; 
+ 00F2 40910100          lds R20,_UART_TxHead
+ 00F6 4F5F              subi R20,255    ; addi 1
+ 00F8 4F77              andi R20,127
+ 00FA           L12:
+ 00FA                   .dbline 107
+ 00FA           ;               /* wait for free space in buffer */
+ 00FA           ; 
+ 00FA           ;       while ( tmphead == UART_TxTail )
+ 00FA           ;               ;
+ 00FA           L13:
+ 00FA                   .dbline 106
+ 00FA 20900000          lds R2,_UART_TxTail
+ 00FE 4215              cp R20,R2
+ 0100 E1F3              breq L12
+ 0102           X3:
+ 0102                   .dbline 108
+ 0102           ;       UART_TxBuf[tmphead] = data; /* store data in buffer */
+ 0102 80E0              ldi R24,<_UART_TxBuf
+ 0104 90E0              ldi R25,>_UART_TxBuf
+ 0106 E42F              mov R30,R20
+ 0108 FF27              clr R31
+ 010A E80F              add R30,R24
+ 010C F91F              adc R31,R25
+ 010E 0083              std z+0,R16
+ 0110                   .dbline 109
+ 0110           ;       UART_TxHead = tmphead; /* store new index */
+ 0110 40930100          sts _UART_TxHead,R20
+ 0114                   .dbline 110
+ 0114           ;       UCR |= (1<<UDRIE); /* enable UDRE interrupt */
+ 0114 559A              sbi 0xa,5
+ 0116                   .dbline -2
+ 0116           L11:
+ 0116                   .dbline 0 ; func end
+ 0116 5991              ld R21,y+
+ 0118 4991              ld R20,y+
+ 011A 0895              ret
+ 011C                   .dbsym r tmphead 20 c
+ 011C                   .dbsym r data 16 c
+ 011C                   .dbend
+ 011C                   .dbfunc e DataInReceiveBuffer _DataInReceiveBuffer fc
+                        .even
+ 011C           _DataInReceiveBuffer::
+ 011C                   .dbline -1
+ 011C                   .dbline 114
+ 011C           ;       }
+ 011C           ; 
+ 011C           ; unsigned char DataInReceiveBuffer( void )
+ 011C           ;       {
+ 011C                   .dbline 115
+ 011C           ;       return ( UART_RxHead != UART_RxTail ); 
+ 011C 20908200          lds R2,_UART_RxTail
+ 0120 30908300          lds R3,_UART_RxHead
+ 0124 3214              cp R3,R2
+ 0126 19F0              breq L16
+ 0128           X4:
+ 0128 01E0              ldi R16,1
+ 012A 10E0              ldi R17,0
+ 012C 02C0              rjmp L17
+ 012E           L16:
+ 012E 0027              clr R16
+ 0130 1127              clr R17
+ 0132           L17:
+ 0132                   .dbline -2
+ 0132           L15:
+ 0132                   .dbline 0 ; func end
+ 0132 0895              ret
+ 0134                   .dbend
+ 0134                   .dbfunc e SendString _SendString fV
+ 0134           ;              i -> R20,R21
+ 0134           ;            str -> R10,R11
+                        .even
+ 0134           _SendString::
+ 0134 00D0              rcall push_xgset300C
+ 0136 A02E              mov R10,R16
+ 0138 B12E              mov R11,R17
+ 013A                   .dbline -1
+ 013A                   .dbline 120
+ 013A           ;               /* return 0 (FALSE) if the receive buffer is empty */
+ 013A           ;       }
+ 013A           ; 
+ 013A           ; void SendString(char *str)
+ 013A           ; {
+ 013A                   .dbline 122
+ 013A           ; int i;
+ 013A           ; for(i=2;i>=0;i--)
+ 013A 42E0              ldi R20,2
+ 013C 50E0              ldi R21,0
+ 013E           L19:
+ 013E                   .dbline 123
+ 013E           ; TransmitByte(str[i]);
+ 013E E42F              mov R30,R20
+ 0140 F52F              mov R31,R21
+ 0142 EA0D              add R30,R10
+ 0144 FB1D              adc R31,R11
+ 0146 0081              ldd R16,z+0
+ 0148 D2DF              rcall _TransmitByte
+ 014A           L20:
+ 014A                   .dbline 122
+ 014A 4150              subi R20,1
+ 014C 5040              sbci R21,0
+ 014E                   .dbline 122
+ 014E 4030              cpi R20,0
+ 0150 E0E0              ldi R30,0
+ 0152 5E07              cpc R21,R30
+ 0154 A4F7              brge L19
+ 0156           X5:
+ 0156                   .dbline -2
+ 0156           L18:
+ 0156                   .dbline 0 ; func end
+ 0156 00C0              rjmp pop_xgset300C
+ 0158                   .dbsym r i 20 I
+ 0158                   .dbsym r str 10 pc
+ 0158                   .dbend
+                        .area vector(rom, abs)
+                        .org 2
+ 0002 ACC0              rjmp _ISR_int0_handler
+                        .area text(rom, con, rel)
+ 0158                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\uartintr.h
+                        .area vector(rom, abs)
+                        .org 12
+ 000C F4C0              rjmp _TIMER1_OVF
+                        .area text(rom, con, rel)
+ 0158                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\uartintr.h
+                        .area vector(rom, abs)
+                        .org 4
+ 0004 D0C0              rjmp _ISR_int1_handler
+                        .area text(rom, con, rel)
+ 0158                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\uartintr.h
+                        .area data(ram, con, rel)
+ 0001                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\uartintr.h
+ 0001           _s_count::
+ 0001                   .blkb 2
+                        .area idata
+ 0001 0000              .word 0
+                        .area data(ram, con, rel)
+ 0003                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\uartintr.h
+ 0003                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\SpeedDection.h
+ 0003                   .dbsym e s_count _s_count I
+ 0003           _AngleCountTime::
+ 0003                   .blkb 2
+                        .area idata
+ 0003 0000              .word 0
+                        .area data(ram, con, rel)
+ 0005                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\SpeedDection.h
+ 0005                   .dbsym e AngleCountTime _AngleCountTime I
+ 0005           _SpeedCountTime::
+ 0005                   .blkb 2
+                        .area idata
+ 0005 0000              .word 0
+                        .area data(ram, con, rel)
+ 0007                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\SpeedDection.h
+ 0007                   .dbsym e SpeedCountTime _SpeedCountTime I
+                        .area text(rom, con, rel)
+ 0158                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\SpeedDection.h
+ 0158                   .dbfunc e ISR_int0_handler _ISR_int0_handler fV
+                        .even
+ 0158           _ISR_int0_handler::
+ 0158 2A92              st -y,R2
+ 015A 3A92              st -y,R3
+ 015C 4A92              st -y,R4
+ 015E 5A92              st -y,R5
+ 0160 2FB6              in R2,0x3f
+ 0162 2A92              st -y,R2
+ 0164                   .dbline -1
+ 0164                   .dbline 28
+ 0164           ; #include <io8515v.h>
+ 0164           ; #include <macros.h>
+ 0164           ; 
+ 0164           ; #pragma interrupt_handler ISR_int0_handler:2 TIMER1_OVF:7 ISR_int1_handler:3
+ 0164           ; 
+ 0164           ; #define CLK_DIV_BY_1          0x01 
+ 0164           ; #define CLK_DIV_BY_8          0x02  
+ 0164           ; #define CLK_DIV_BY_64         0x03  
+ 0164           ; #define CLK_DIV_BY_256                0x04
+ 0164           ; #define CLK_DIV_BY_1024               0x05
+ 0164           ; #define TMR1_OVF_INT_ENA      0x80
+ 0164           ; #define INT0_ENA_INT1_ENA     0xC0
+ 0164           ; #define INT0_TRIG_FALLING_EDGE_INT1_TRIG_FALLING_EDGE 0x0A
+ 0164           ; 
+ 0164           ; //int PreviousNum =0;
+ 0164           ; //int CurrentNum =0;
+ 0164           ; //int count =0;
+ 0164           ; //int Frequency =0;
+ 0164           ; //static int SubNum =0;
+ 0164           ; //static int temptime =0;
+ 0164           ; //static unsigned char StartFlag =0;
+ 0164           ; //unsigned char Data[4] ={'#',0,0,'#'};
+ 0164           ; int s_count=0;
+ 0164           ; int AngleCountTime = 0;
+ 0164           ; int SpeedCountTime = 0;
+ 0164           ; 
+ 0164           ; void ISR_int0_handler()
+ 0164           ; {
+ 0164                   .dbline 29
+ 0164           ;       s_count -= (AngleCountTime*256+TCNT0);
+ 0164 22B6              in R2,0x32
+ 0166 40900300          lds R4,_AngleCountTime
+ 016A 50900400          lds R5,_AngleCountTime+1
+ 016E 342C              mov R3,R4
+ 0170 40900100          lds R4,_s_count
+ 0174 50900200          lds R5,_s_count+1
+ 0178 4218              sub R4,R2
+ 017A 5308              sbc R5,R3
+ 017C 50920200          sts _s_count+1,R5
+ 0180 40920100          sts _s_count,R4
+ 0184                   .dbline 30
+ 0184           ;       AngleCountTime=0;
+ 0184 2224              clr R2
+ 0186 3324              clr R3
+ 0188 30920400          sts _AngleCountTime+1,R3
+ 018C 20920300          sts _AngleCountTime,R2
+ 0190                   .dbline 31
+ 0190           ;       TCNT0=0;
+ 0190 22BE              out 0x32,R2
+ 0192                   .dbline -2
+ 0192           L23:
+ 0192                   .dbline 0 ; func end
+ 0192 2990              ld R2,y+
+ 0194 2FBE              out 0x3f,R2
+ 0196 5990              ld R5,y+
+ 0198 4990              ld R4,y+
+ 019A 3990              ld R3,y+
+ 019C 2990              ld R2,y+
+ 019E 1895              reti
+ 01A0                   .dbend
+ 01A0                   .dbfunc e ISR_int1_handler _ISR_int1_handler fV
+                        .even
+ 01A0           _ISR_int1_handler::
+ 01A0 2A92              st -y,R2
+ 01A2 3A92              st -y,R3
+ 01A4 4A92              st -y,R4
+ 01A6 5A92              st -y,R5
+ 01A8 2FB6              in R2,0x3f
+ 01AA 2A92              st -y,R2
+ 01AC                   .dbline -1
+ 01AC                   .dbline 39
+ 01AC           ; 
+ 01AC           ;       //CurrentNum = TCNT1H*256+TCNT1L;       
+ 01AC           ;       //StartFlag =1;
+ 01AC           ;       //count++;      
+ 01AC           ; }
+ 01AC           ; 
+ 01AC           ; void ISR_int1_handler()
+ 01AC           ; {
+ 01AC                   .dbline 40
+ 01AC           ;     s_count += (AngleCountTime*256+TCNT0);
+ 01AC 22B6              in R2,0x32
+ 01AE 40900300          lds R4,_AngleCountTime
+ 01B2 50900400          lds R5,_AngleCountTime+1
+ 01B6 342C              mov R3,R4
+ 01B8 40900100          lds R4,_s_count
+ 01BC 50900200          lds R5,_s_count+1
+ 01C0 420C              add R4,R2
+ 01C2 531C              adc R5,R3
+ 01C4 50920200          sts _s_count+1,R5
+ 01C8 40920100          sts _s_count,R4
+ 01CC                   .dbline 41
+ 01CC           ;       AngleCountTime=0;
+ 01CC 2224              clr R2
+ 01CE 3324              clr R3
+ 01D0 30920400          sts _AngleCountTime+1,R3
+ 01D4 20920300          sts _AngleCountTime,R2
+ 01D8                   .dbline 42
+ 01D8           ;       TCNT0=0;
+ 01D8 22BE              out 0x32,R2
+ 01DA                   .dbline -2
+ 01DA           L24:
+ 01DA                   .dbline 0 ; func end
+ 01DA 2990              ld R2,y+
+ 01DC 2FBE              out 0x3f,R2
+ 01DE 5990              ld R5,y+
+ 01E0 4990              ld R4,y+
+ 01E2 3990              ld R3,y+
+ 01E4 2990              ld R2,y+
+ 01E6 1895              reti
+ 01E8                   .dbend
+ 01E8                   .dbfunc e TIMER1_OVF _TIMER1_OVF fV
+                        .even
+ 01E8           _TIMER1_OVF::
+ 01E8 2A92              st -y,R2
+ 01EA 8A93              st -y,R24
+ 01EC 9A93              st -y,R25
+ 01EE 2FB6              in R2,0x3f
+ 01F0 2A92              st -y,R2
+ 01F2                   .dbline -1
+ 01F2                   .dbline 51
+ 01F2           ; 
+ 01F2           ;     /*will lead to acummulative error
+ 01F2           ;       s_count += (AngleCountTime*256+TCNT0);
+ 01F2           ;       TCNT0=0;
+ 01F2           ;       AngleCountTime=0;*/     
+ 01F2           ; }
+ 01F2           ; 
+ 01F2           ; void TIMER1_OVF()
+ 01F2           ; {                
+ 01F2                   .dbline 52
+ 01F2           ;       TCNT1L = 0x00;
+ 01F2 2224              clr R2
+ 01F4 2CBC              out 0x2c,R2
+ 01F6                   .dbline 53
+ 01F6           ;       TCNT1H = 0x00;
+ 01F6 2DBC              out 0x2d,R2
+ 01F8                   .dbline 54
+ 01F8           ;       SpeedCountTime++;       
+ 01F8 80910500          lds R24,_SpeedCountTime
+ 01FC 90910600          lds R25,_SpeedCountTime+1
+ 0200 0196              adiw R24,1
+ 0202 90930600          sts _SpeedCountTime+1,R25
+ 0206 80930500          sts _SpeedCountTime,R24
+ 020A                   .dbline -2
+ 020A           L25:
+ 020A                   .dbline 0 ; func end
+ 020A 2990              ld R2,y+
+ 020C 2FBE              out 0x3f,R2
+ 020E 9991              ld R25,y+
+ 0210 8991              ld R24,y+
+ 0212 2990              ld R2,y+
+ 0214 1895              reti
+ 0216                   .dbend
+ 0216                   .dbfunc e InitTimer1 _InitTimer1 fV
+                        .even
+ 0216           _InitTimer1::
+ 0216                   .dbline -1
+ 0216                   .dbline 58
+ 0216           ; }
+ 0216           ; 
+ 0216           ; void InitTimer1()
+ 0216           ; {
+ 0216                   .dbline 59
+ 0216           ;     TCCR1B =0x00;
+ 0216 2224              clr R2
+ 0218 2EBC              out 0x2e,R2
+ 021A                   .dbline 60
+ 021A           ;       TCCR1A = 0;
+ 021A 2FBC              out 0x2f,R2
+ 021C                   .dbline 61
+ 021C           ;       TCNT1H = 0x00;           
+ 021C 2DBC              out 0x2d,R2
+ 021E                   .dbline 62
+ 021E           ;       TCNT1L = 0x00;
+ 021E 2CBC              out 0x2c,R2
+ 0220                   .dbline 63
+ 0220           ;       TCCR1B = 0x07;
+ 0220 87E0              ldi R24,7
+ 0222 8EBD              out 0x2e,R24
+ 0224                   .dbline 64
+ 0224           ;       TIMSK |= (1<<TOIE1);
+ 0224 89B7              in R24,0x39
+ 0226 8068              ori R24,128
+ 0228 89BF              out 0x39,R24
+ 022A                   .dbline -2
+ 022A           L26:
+ 022A                   .dbline 0 ; func end
+ 022A 0895              ret
+ 022C                   .dbend
+ 022C                   .dbfunc e OpenInt0_Int1 _OpenInt0_Int1 fV
+                        .even
+ 022C           _OpenInt0_Int1::
+ 022C                   .dbline -1
+ 022C                   .dbline 68
+ 022C           ; }
+ 022C           ; 
+ 022C           ; void OpenInt0_Int1()
+ 022C           ; {
+ 022C                   .dbline 69
+ 022C           ;     MCUCR = INT0_TRIG_FALLING_EDGE_INT1_TRIG_FALLING_EDGE;
+ 022C 8AE0              ldi R24,10
+ 022E 85BF              out 0x35,R24
+ 0230                   .dbline 70
+ 0230           ;       GIMSK = INT0_ENA_INT1_ENA;      
+ 0230 80EC              ldi R24,192
+ 0232 8BBF              out 0x3b,R24
+ 0234                   .dbline -2
+ 0234           L27:
+ 0234                   .dbline 0 ; func end
+ 0234 0895              ret
+ 0236                   .dbend
+                        .area vector(rom, abs)
+                        .org 14
+ 000E 1BC1              rjmp _TIMER0_OVF
+                        .area text(rom, con, rel)
+ 0236                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\SpeedDection.h
+                        .area data(ram, con, rel)
+ 0007                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\SpeedDection.h
+ 0007           _Orientation::
+ 0007                   .blkb 2
+                        .area idata
+ 0007 0000              .word 0
+                        .area data(ram, con, rel)
+ 0009                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\SpeedDection.h
+ 0009                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 0009                   .dbsym e Orientation _Orientation I
+ 0009           _angle::
+ 0009                   .blkb 2
+                        .area idata
+ 0009 0000              .word 0
+                        .area data(ram, con, rel)
+ 000B                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 000B                   .dbsym e angle _angle I
+ 000B           _pos::
+ 000B                   .blkb 2
+                        .area idata
+ 000B 0000              .word 0
+                        .area data(ram, con, rel)
+ 000D                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 000D                   .dbsym e pos _pos I
+ 000D           _Data::
+ 000D                   .blkb 2
+                        .area idata
+ 000D 2300              .byte 35,0
+                        .area data(ram, con, rel)
+ 000F                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 000F                   .blkb 1
+                        .area idata
+ 000F 00                .byte 0
+                        .area data(ram, con, rel)
+ 0010                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 0010                   .dbsym e Data _Data A[3:3]c
+                        .area text(rom, con, rel)
+ 0236                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 0236                   .dbfunc e TIMER0_OVF _TIMER0_OVF fV
+                        .even
+ 0236           _TIMER0_OVF::
+ 0236 2A92              st -y,R2
+ 0238 8A93              st -y,R24
+ 023A 9A93              st -y,R25
+ 023C 2FB6              in R2,0x3f
+ 023E 2A92              st -y,R2
+ 0240                   .dbline -1
+ 0240                   .dbline 19
+ 0240           ; #include "uartintr.h"
+ 0240           ; #include "SpeedDection.h"
+ 0240           ; 
+ 0240           ; #pragma interrupt_handler TIMER0_OVF:8
+ 0240           ; 
+ 0240           ; //int PreCountNum = 0,CurrentCountNum = 0;
+ 0240           ; //unsigned char SubNum =0;
+ 0240           ; //int DataH =0,DataL = 0;
+ 0240           ; //int flag= 0;
+ 0240           ; int Orientation=0;
+ 0240           ; int angle=0,pos = 0;
+ 0240           ; //unsigned char TestNum;
+ 0240           ; extern int s_count;
+ 0240           ; extern int AngleCountTime;
+ 0240           ; 
+ 0240           ; unsigned char Data[3] ={'#',0,0};
+ 0240           ; 
+ 0240           ; void TIMER0_OVF()
+ 0240           ; {
+ 0240                   .dbline 20
+ 0240           ;       TCNT0 = 00; 
+ 0240 2224              clr R2
+ 0242 22BE              out 0x32,R2
+ 0244                   .dbline 21
+ 0244           ;       AngleCountTime++;
+ 0244 80910300          lds R24,_AngleCountTime
+ 0248 90910400          lds R25,_AngleCountTime+1
+ 024C 0196              adiw R24,1
+ 024E 90930400          sts _AngleCountTime+1,R25
+ 0252 80930300          sts _AngleCountTime,R24
+ 0256                   .dbline -2
+ 0256           L28:
+ 0256                   .dbline 0 ; func end
+ 0256 2990              ld R2,y+
+ 0258 2FBE              out 0x3f,R2
+ 025A 9991              ld R25,y+
+ 025C 8991              ld R24,y+
+ 025E 2990              ld R2,y+
+ 0260 1895              reti
+ 0262                   .dbend
+ 0262                   .dbfunc e InitTimer0 _InitTimer0 fV
+                        .even
+ 0262           _InitTimer0::
+ 0262                   .dbline -1
+ 0262                   .dbline 25
+ 0262           ; }
+ 0262           ; 
+ 0262           ; void InitTimer0()
+ 0262           ; {
+ 0262                   .dbline 26
+ 0262           ;       TCCR0 = 0x07;
+ 0262 87E0              ldi R24,7
+ 0264 83BF              out 0x33,R24
+ 0266                   .dbline 27
+ 0266           ;       TCNT0 = 00;
+ 0266 2224              clr R2
+ 0268 22BE              out 0x32,R2
+ 026A                   .dbline 28
+ 026A           ;       TIMSK |= (1<<TOIE0);
+ 026A 89B7              in R24,0x39
+ 026C 8260              ori R24,2
+ 026E 89BF              out 0x39,R24
+ 0270                   .dbline -2
+ 0270           L29:
+ 0270                   .dbline 0 ; func end
+ 0270 0895              ret
+ 0272                   .dbend
+ 0272                   .dbfunc e Initial _Initial fV
+                        .even
+ 0272           _Initial::
+ 0272                   .dbline -1
+ 0272                   .dbline 32
+ 0272           ; }
+ 0272           ; 
+ 0272           ; void Initial()
+ 0272           ; {
+ 0272                   .dbline 33
+ 0272           ;       TCNT0 = 00;//8 bits counter
+ 0272 2224              clr R2
+ 0274 22BE              out 0x32,R2
+ 0276                   .dbline 34
+ 0276           ;       TCNT1H = 0x00;// 16bits counter high byte           
+ 0276 2DBC              out 0x2d,R2
+ 0278                   .dbline 35
+ 0278           ;       TCNT1L = 0x00;//low byte
+ 0278 2CBC              out 0x2c,R2
+ 027A                   .dbline 36
+ 027A           ;       s_count=0;//software counter
+ 027A 3324              clr R3
+ 027C 30920200          sts _s_count+1,R3
+ 0280 20920100          sts _s_count,R2
+ 0284                   .dbline 37
+ 0284           ;       angle=0;//angle of handle
+ 0284 30920A00          sts _angle+1,R3
+ 0288 20920900          sts _angle,R2
+ 028C                   .dbline 38
+ 028C           ;       pos = 0;//position
+ 028C 30920C00          sts _pos+1,R3
+ 0290 20920B00          sts _pos,R2
+ 0294                   .dbline 39
+ 0294           ;       AngleCountTime =0;//times of TCNT0 overflow
+ 0294 30920400          sts _AngleCountTime+1,R3
+ 0298 20920300          sts _AngleCountTime,R2
+ 029C                   .dbline 40
+ 029C           ;       SpeedCountTime =0;//Position CountTime;
+ 029C 30920600          sts _SpeedCountTime+1,R3
+ 02A0 20920500          sts _SpeedCountTime,R2
+ 02A4                   .dbline 41
+ 02A4           ;       Data[1] =0;
+ 02A4 20920E00          sts _Data+1,R2
+ 02A8                   .dbline 42
+ 02A8           ;       Data[2] =0;     
+ 02A8 20920F00          sts _Data+2,R2
+ 02AC                   .dbline -2
+ 02AC           L30:
+ 02AC                   .dbline 0 ; func end
+ 02AC 0895              ret
+ 02AE                   .dbend
+ 02AE                   .dbfunc e DectectOrientation _DectectOrientation fI
+                        .even
+ 02AE           _DectectOrientation::
+ 02AE                   .dbline -1
+ 02AE                   .dbline 46
+ 02AE           ; }
+ 02AE           ; 
+ 02AE           ; int DectectOrientation()
+ 02AE           ; {
+ 02AE                   .dbline 47
+ 02AE           ;       return (PINB & (1 << PB2) );
+ 02AE 06B3              in R16,0x16
+ 02B0 1127              clr R17
+ 02B2 0470              andi R16,4
+ 02B4 1070              andi R17,0
+ 02B6                   .dbline -2
+ 02B6           L33:
+ 02B6                   .dbline 0 ; func end
+ 02B6 0895              ret
+ 02B8                   .dbend
+ 02B8                   .dbfunc e InitAngle _InitAngle fV
+                        .even
+ 02B8           _InitAngle::
+ 02B8                   .dbline -1
+ 02B8                   .dbline 52
+ 02B8           ;       
+ 02B8           ; }
+ 02B8           ; 
+ 02B8           ; void InitAngle()
+ 02B8           ; {
+ 02B8                   .dbline 53
+ 02B8           ;                       TCNT0 = 00;
+ 02B8 2224              clr R2
+ 02BA 22BE              out 0x32,R2
+ 02BC                   .dbline 56
+ 02BC           ;                       //TCNT1H = 0x00;           
+ 02BC           ;                       //TCNT1L = 0x00;
+ 02BC           ;                       s_count=0;
+ 02BC 3324              clr R3
+ 02BE 30920200          sts _s_count+1,R3
+ 02C2 20920100          sts _s_count,R2
+ 02C6                   .dbline 57
+ 02C6           ;                       angle=0;
+ 02C6 30920A00          sts _angle+1,R3
+ 02CA 20920900          sts _angle,R2
+ 02CE                   .dbline 59
+ 02CE           ;                       //pos = 0;
+ 02CE           ;                       AngleCountTime =0;
+ 02CE 30920400          sts _AngleCountTime+1,R3
+ 02D2 20920300          sts _AngleCountTime,R2
+ 02D6                   .dbline 60
+ 02D6           ;                       Data[1] =0;
+ 02D6 20920E00          sts _Data+1,R2
+ 02DA                   .dbline 61
+ 02DA           ;                       Data[2] =0;
+ 02DA 20920F00          sts _Data+2,R2
+ 02DE                   .dbline -2
+ 02DE           L34:
+ 02DE                   .dbline 0 ; func end
+ 02DE 0895              ret
+ 02E0                   .dbend
+                        .area lit(rom, con, rel)
+ 0000           L38:
+ 0000 5649525455414C42494359434C452300  .byte 'V,'I,'R,'T,'U,'A,'L,'B,'I,'C,'Y,'C,'L,'E,35,0
+                        .area text(rom, con, rel)
+ 02E0                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 02E0                   .dbfunc e main _main fV
+ 02E0           ;            VER -> y+0
+ 02E0           ;              i -> R20,R21
+                        .even
+ 02E0           _main::
+ 02E0 6097              sbiw R28,16
+ 02E2                   .dbline -1
+ 02E2                   .dbline 65
+ 02E2           ; }
+ 02E2           ; 
+ 02E2           ; void main()
+ 02E2           ; {
+ 02E2                   .dbline 68
+ 02E2           ; 
+ 02E2           ; 
+ 02E2           ;       char VER[] = "VIRTUALBICYCLE#"; 
+ 02E2 80E0              ldi R24,<L38
+ 02E4 90E0              ldi R25,>L38
+ 02E6 EC2F              mov R30,R28
+ 02E8 FD2F              mov R31,R29
+ 02EA 00E1              ldi R16,16
+ 02EC 10E0              ldi R17,0
+ 02EE FA93              st -y,R31
+ 02F0 EA93              st -y,R30
+ 02F2 9A93              st -y,R25
+ 02F4 8A93              st -y,R24
+ 02F6 00D0              rcall asgncblk
+ 02F8                   .dbline 70
+ 02F8           ;       int i;
+ 02F8           ;       DDRB = 0x00;//"0"-input;"1"-output
+ 02F8 2224              clr R2
+ 02FA 27BA              out 0x17,R2
+ 02FC                   .dbline 71
+ 02FC           ;       PORTB = 0x03;
+ 02FC 83E0              ldi R24,3
+ 02FE 88BB              out 0x18,R24
+ 0300                   .dbline 72
+ 0300           ;       DDRA = 0x00;
+ 0300 2ABA              out 0x1a,R2
+ 0302                   .dbline 73
+ 0302           ;       PORTA = 0xFF;
+ 0302 8FEF              ldi R24,255
+ 0304 8BBB              out 0x1b,R24
+ 0306                   .dbline 74
+ 0306           ;       DDRC = 0x00;//
+ 0306 24BA              out 0x14,R2
+ 0308                   .dbline 75
+ 0308           ;       PORTC = 0xFF;//initial value
+ 0308 85BB              out 0x15,R24
+ 030A                   .dbline 77
+ 030A           ; 
+ 030A           ;       InitUART(11);//set bandrate,19200 in 3.686M
+ 030A 0BE0              ldi R16,11
+ 030C 79DE              rcall _InitUART
+ 030E                   .dbline 78
+ 030E           ;       InitTimer0();
+ 030E A9DF              rcall _InitTimer0
+ 0310                   .dbline 79
+ 0310           ;       InitTimer1();
+ 0310 82DF              rcall _InitTimer1
+ 0312                   .dbline 80
+ 0312           ;       OpenInt0_Int1();
+ 0312 8CDF              rcall _OpenInt0_Int1
+ 0314                   .dbline 84
+ 0314           ;       
+ 0314           ;     
+ 0314           ; 
+ 0314           ;       _SEI(); 
+ 0314 7894              sei
+ 0316 10C1              rjmp L40
+ 0318           L39:
+ 0318                   .dbline 87
+ 0318           ; 
+ 0318           ;       while(1)
+ 0318           ;       {
+ 0318                   .dbline 89
+ 0318           ;           //check if Z is high,         
+ 0318           ;         if( PINA  & (1 << PA7))//PA7 is high, corresponding to Z high.which is zero position signal of sensor
+ 0318 CF9B              sbis 0x19,7
+ 031A 01C0              rjmp L42
+ 031C           X6:
+ 031C                   .dbline 90
+ 031C           ;         {
+ 031C                   .dbline 91
+ 031C           ;                       InitAngle();
+ 031C CDDF              rcall _InitAngle
+ 031E                   .dbline 92
+ 031E           ;         }
+ 031E           L42:
+ 031E                   .dbline 94
+ 031E           ;               
+ 031E           ;               switch(ReceiveByte())
+ 031E D1DE              rcall _ReceiveByte
+ 0320 402F              mov R20,R16
+ 0322 5527              clr R21
+ 0324 4235              cpi R20,82
+ 0326 E0E0              ldi R30,0
+ 0328 5E07              cpc R21,R30
+ 032A 09F4              brne X19
+ 032C EFC0              rjmp L65
+ 032E           X19:
+ 032E           X7:
+ 032E 4335              cpi R20,83
+ 0330 E0E0              ldi R30,0
+ 0332 5E07              cpc R21,R30
+ 0334 09F4              brne X20
+ 0336 DDC0              rjmp L64
+ 0338           X20:
+ 0338           X8:
+ 0338 83E5              ldi R24,83
+ 033A 90E0              ldi R25,0
+ 033C 8417              cp R24,R20
+ 033E 9507              cpc R25,R21
+ 0340 A4F0              brlt L71
+ 0342           X9:
+ 0342           L70:
+ 0342 4134              cpi R20,65
+ 0344 E0E0              ldi R30,0
+ 0346 5E07              cpc R21,R30
+ 0348 09F4              brne X21
+ 034A 75C0              rjmp L55
+ 034C           X21:
+ 034C           X10:
+ 034C 4234              cpi R20,66
+ 034E E0E0              ldi R30,0
+ 0350 5E07              cpc R21,R30
+ 0352 09F4              brne X22
+ 0354 AEC0              rjmp L60
+ 0356           X22:
+ 0356           X11:
+ 0356 4334              cpi R20,67
+ 0358 E0E0              ldi R30,0
+ 035A 5E07              cpc R21,R30
+ 035C 09F4              brne X23
+ 035E C2C0              rjmp L63
+ 0360           X23:
+ 0360           X12:
+ 0360 4434              cpi R20,68
+ 0362 E0E0              ldi R30,0
+ 0364 5E07              cpc R21,R30
+ 0366 39F0              breq L48
+ 0368           X13:
+ 0368 E7C0              rjmp L44
+ 036A           L71:
+ 036A 4F3F              cpi R20,255
+ 036C E0E0              ldi R30,0
+ 036E 5E07              cpc R21,R30
+ 0370 09F4              brne X24
+ 0372 E2C0              rjmp L45
+ 0374           X24:
+ 0374           X14:
+ 0374 E1C0              rjmp L44
+ 0376           L48:
+ 0376                   .dbline 100
+ 0376           ;               {
+ 0376           ;               case 0xFF:break; 
+ 0376           ;               case 'D':/*Sending ALL*/
+ 0376           ;               
+ 0376           ;               /*case A*/
+ 0376           ;                        if(DectectOrientation())
+ 0376 9BDF              rcall _DectectOrientation
+ 0378 0030              cpi R16,0
+ 037A 0107              cpc R16,R17
+ 037C 89F0              breq L49
+ 037E           X15:
+ 037E                   .dbline 101
+ 037E           ;                       {
+ 037E                   .dbline 102
+ 037E           ;                               angle = s_count+(AngleCountTime*256+TCNT0);
+ 037E 22B6              in R2,0x32
+ 0380 40900300          lds R4,_AngleCountTime
+ 0384 50900400          lds R5,_AngleCountTime+1
+ 0388 342C              mov R3,R4
+ 038A 40900100          lds R4,_s_count
+ 038E 50900200          lds R5,_s_count+1
+ 0392 420C              add R4,R2
+ 0394 531C              adc R5,R3
+ 0396 50920A00          sts _angle+1,R5
+ 039A 40920900          sts _angle,R4
+ 039E                   .dbline 103
+ 039E           ;                       }
+ 039E 10C0              rjmp L50
+ 03A0           L49:
+ 03A0                   .dbline 105
+ 03A0           ;                       else
+ 03A0           ;                       {
+ 03A0                   .dbline 106
+ 03A0           ;                               angle = s_count-(AngleCountTime*256+TCNT0);
+ 03A0 22B6              in R2,0x32
+ 03A2 40900300          lds R4,_AngleCountTime
+ 03A6 50900400          lds R5,_AngleCountTime+1
+ 03AA 342C              mov R3,R4
+ 03AC 40900100          lds R4,_s_count
+ 03B0 50900200          lds R5,_s_count+1
+ 03B4 4218              sub R4,R2
+ 03B6 5308              sbc R5,R3
+ 03B8 50920A00          sts _angle+1,R5
+ 03BC 40920900          sts _angle,R4
+ 03C0                   .dbline 107
+ 03C0           ;                       }
+ 03C0           L50:
+ 03C0                   .dbline 108
+ 03C0           ;                       Data[1] =angle>>8;//high 
+ 03C0 20900900          lds R2,_angle
+ 03C4 30900A00          lds R3,_angle+1
+ 03C8 232C              mov R2,R3
+ 03CA 3324              clr R3
+ 03CC 27FC              sbrc R2,7
+ 03CE 3094              com R3
+ 03D0 20920E00          sts _Data+1,R2
+ 03D4                   .dbline 109
+ 03D4           ;                       Data[2] =angle&0x00FF;//low     
+ 03D4 80910900          lds R24,_angle
+ 03D8 90910A00          lds R25,_angle+1
+ 03DC 9070              andi R25,0
+ 03DE 80930F00          sts _Data+2,R24
+ 03E2                   .dbline 110
+ 03E2           ;                       TransmitByte('A');
+ 03E2 01E4              ldi R16,65
+ 03E4 84DE              rcall _TransmitByte
+ 03E6                   .dbline 111
+ 03E6           ;                       SendString(Data);//send data[2] first,then data[1],data[0];
+ 03E6 00E0              ldi R16,<_Data
+ 03E8 10E0              ldi R17,>_Data
+ 03EA A4DE              rcall _SendString
+ 03EC                   .dbline 114
+ 03EC           ;                       
+ 03EC           ;               /*case B*/
+ 03EC           ;                       pos = TCNT1H*256+TCNT1L;
+ 03EC 2CB4              in R2,0x2c
+ 03EE 3DB4              in R3,0x2d
+ 03F0 30920C00          sts _pos+1,R3
+ 03F4 20920B00          sts _pos,R2
+ 03F8                   .dbline 115
+ 03F8           ;                       Data[1] =pos>>8;
+ 03F8 232C              mov R2,R3
+ 03FA 3324              clr R3
+ 03FC 27FC              sbrc R2,7
+ 03FE 3094              com R3
+ 0400 20920E00          sts _Data+1,R2
+ 0404                   .dbline 116
+ 0404           ;                       Data[2] =pos&0x00FF;    
+ 0404 80910B00          lds R24,_pos
+ 0408 90910C00          lds R25,_pos+1
+ 040C 9070              andi R25,0
+ 040E 80930F00          sts _Data+2,R24
+ 0412                   .dbline 117
+ 0412           ;                       TransmitByte('B');
+ 0412 02E4              ldi R16,66
+ 0414 6CDE              rcall _TransmitByte
+ 0416                   .dbline 118
+ 0416           ;                       SendString(Data);
+ 0416 00E0              ldi R16,<_Data
+ 0418 10E0              ldi R17,>_Data
+ 041A 8CDE              rcall _SendString
+ 041C                   .dbline 121
+ 041C           ;                               
+ 041C           ;               /*case S*/
+ 041C           ;                       TransmitByte('S');
+ 041C 03E5              ldi R16,83
+ 041E 67DE              rcall _TransmitByte
+ 0420                   .dbline 124
+ 0420           ;                       //if(PINA & (1 << PA2));
+ 0420           ;                       
+ 0420           ;                       PORTC = PINC;
+ 0420 23B2              in R2,0x13
+ 0422 25BA              out 0x15,R2
+ 0424                   .dbline 125
+ 0424           ;                       TransmitByte(PORTC);
+ 0424 05B3              in R16,0x15
+ 0426 63DE              rcall _TransmitByte
+ 0428                   .dbline 127
+ 0428           ;                       
+ 0428           ;                       PORTA = PINA;
+ 0428 29B2              in R2,0x19
+ 042A 2BBA              out 0x1b,R2
+ 042C                   .dbline 128
+ 042C           ;                       TransmitByte(PORTA);
+ 042C 0BB3              in R16,0x1b
+ 042E 5FDE              rcall _TransmitByte
+ 0430                   .dbline 129
+ 0430           ;                       TransmitByte('#');              
+ 0430 03E2              ldi R16,35
+ 0432 5DDE              rcall _TransmitByte
+ 0434                   .dbline 130
+ 0434           ;               break;
+ 0434 81C0              rjmp L45
+ 0436           L55:
+ 0436                   .dbline 133
+ 0436           ;               
+ 0436           ;               case 'A'://angle
+ 0436           ;                       if(DectectOrientation())
+ 0436 3BDF              rcall _DectectOrientation
+ 0438 A02E              mov R10,R16
+ 043A B12E              mov R11,R17
+ 043C 0030              cpi R16,0
+ 043E 0107              cpc R16,R17
+ 0440 89F0              breq L56
+ 0442           X16:
+ 0442                   .dbline 134
+ 0442           ;                       {
+ 0442                   .dbline 135
+ 0442           ;                               angle = s_count+(AngleCountTime*256+TCNT0);
+ 0442 22B6              in R2,0x32
+ 0444 40900300          lds R4,_AngleCountTime
+ 0448 50900400          lds R5,_AngleCountTime+1
+ 044C 342C              mov R3,R4
+ 044E 40900100          lds R4,_s_count
+ 0452 50900200          lds R5,_s_count+1
+ 0456 420C              add R4,R2
+ 0458 531C              adc R5,R3
+ 045A 50920A00          sts _angle+1,R5
+ 045E 40920900          sts _angle,R4
+ 0462                   .dbline 136
+ 0462           ;                       }
+ 0462 10C0              rjmp L57
+ 0464           L56:
+ 0464                   .dbline 138
+ 0464           ;                       else
+ 0464           ;                       {
+ 0464                   .dbline 139
+ 0464           ;                               angle = s_count-(AngleCountTime*256+TCNT0);
+ 0464 22B6              in R2,0x32
+ 0466 40900300          lds R4,_AngleCountTime
+ 046A 50900400          lds R5,_AngleCountTime+1
+ 046E 342C              mov R3,R4
+ 0470 40900100          lds R4,_s_count
+ 0474 50900200          lds R5,_s_count+1
+ 0478 4218              sub R4,R2
+ 047A 5308              sbc R5,R3
+ 047C 50920A00          sts _angle+1,R5
+ 0480 40920900          sts _angle,R4
+ 0484                   .dbline 140
+ 0484           ;                       }
+ 0484           L57:
+ 0484                   .dbline 141
+ 0484           ;                       Data[1] =angle>>8;
+ 0484 20900900          lds R2,_angle
+ 0488 30900A00          lds R3,_angle+1
+ 048C 232C              mov R2,R3
+ 048E 3324              clr R3
+ 0490 27FC              sbrc R2,7
+ 0492 3094              com R3
+ 0494 20920E00          sts _Data+1,R2
+ 0498                   .dbline 142
+ 0498           ;                       Data[2] =angle&0x00FF;  
+ 0498 80910900          lds R24,_angle
+ 049C 90910A00          lds R25,_angle+1
+ 04A0 9070              andi R25,0
+ 04A2 80930F00          sts _Data+2,R24
+ 04A6                   .dbline 143
+ 04A6           ;                       TransmitByte('A');
+ 04A6 01E4              ldi R16,65
+ 04A8 22DE              rcall _TransmitByte
+ 04AA                   .dbline 144
+ 04AA           ;                       SendString(Data);       
+ 04AA 00E0              ldi R16,<_Data
+ 04AC 10E0              ldi R17,>_Data
+ 04AE 42DE              rcall _SendString
+ 04B0                   .dbline 145
+ 04B0           ;                       break;
+ 04B0 43C0              rjmp L45
+ 04B2           L60:
+ 04B2                   .dbline 148
+ 04B2           ; 
+ 04B2           ;               case 'B'://position
+ 04B2           ;                       pos = TCNT1H*256+TCNT1L;
+ 04B2 2CB4              in R2,0x2c
+ 04B4 3DB4              in R3,0x2d
+ 04B6 30920C00          sts _pos+1,R3
+ 04BA 20920B00          sts _pos,R2
+ 04BE                   .dbline 149
+ 04BE           ;                       Data[1] =pos>>8;
+ 04BE 232C              mov R2,R3
+ 04C0 3324              clr R3
+ 04C2 27FC              sbrc R2,7
+ 04C4 3094              com R3
+ 04C6 20920E00          sts _Data+1,R2
+ 04CA                   .dbline 150
+ 04CA           ;                       Data[2] =pos&0x00FF;    
+ 04CA 80910B00          lds R24,_pos
+ 04CE 90910C00          lds R25,_pos+1
+ 04D2 9070              andi R25,0
+ 04D4 80930F00          sts _Data+2,R24
+ 04D8                   .dbline 151
+ 04D8           ;                       TransmitByte('B');
+ 04D8 02E4              ldi R16,66
+ 04DA 09DE              rcall _TransmitByte
+ 04DC                   .dbline 152
+ 04DC           ;                       SendString(Data);       
+ 04DC 00E0              ldi R16,<_Data
+ 04DE 10E0              ldi R17,>_Data
+ 04E0 29DE              rcall _SendString
+ 04E2                   .dbline 153
+ 04E2           ;                       break;
+ 04E2 2AC0              rjmp L45
+ 04E4           L63:
+ 04E4                   .dbline 156
+ 04E4           ; 
+ 04E4           ;               case 'C'://Clear Command
+ 04E4           ;                        InitAngle();//only init angle, position imformation will not clear.
+ 04E4 E9DE              rcall _InitAngle
+ 04E6                   .dbline 157
+ 04E6           ;                        TransmitByte('C');
+ 04E6 03E4              ldi R16,67
+ 04E8 02DE              rcall _TransmitByte
+ 04EA                   .dbline 158
+ 04EA           ;                        SendString(Data);
+ 04EA 00E0              ldi R16,<_Data
+ 04EC 10E0              ldi R17,>_Data
+ 04EE 22DE              rcall _SendString
+ 04F0                   .dbline 159
+ 04F0           ;                       break;
+ 04F0 23C0              rjmp L45
+ 04F2           L64:
+ 04F2                   .dbline 162
+ 04F2           ; 
+ 04F2           ;               case 'S'://switch, key
+ 04F2           ;                       TransmitByte('S');
+ 04F2 03E5              ldi R16,83
+ 04F4 FCDD              rcall _TransmitByte
+ 04F6                   .dbline 165
+ 04F6           ;                       //if(PINA & (1 << PA2));                
+ 04F6           ;                       
+ 04F6           ;                       PORTC = PINC;
+ 04F6 23B2              in R2,0x13
+ 04F8 25BA              out 0x15,R2
+ 04FA                   .dbline 166
+ 04FA           ;                       TransmitByte(PORTC);
+ 04FA 05B3              in R16,0x15
+ 04FC F8DD              rcall _TransmitByte
+ 04FE                   .dbline 168
+ 04FE           ;                       
+ 04FE           ;                       PORTA = PINA;
+ 04FE 29B2              in R2,0x19
+ 0500 2BBA              out 0x1b,R2
+ 0502                   .dbline 169
+ 0502           ;                       TransmitByte(PORTA);
+ 0502 0BB3              in R16,0x1b
+ 0504 F4DD              rcall _TransmitByte
+ 0506                   .dbline 170
+ 0506           ;                       TransmitByte('#');
+ 0506 03E2              ldi R16,35
+ 0508 F2DD              rcall _TransmitByte
+ 050A                   .dbline 171
+ 050A           ;                       break;
+ 050A 16C0              rjmp L45
+ 050C           L65:
+ 050C                   .dbline 174
+ 050C           ;                       
+ 050C           ;               case 'R'://version information
+ 050C           ;                        for(i = 0;VER[i]!='\0';i++)
+ 050C 4427              clr R20
+ 050E 5527              clr R21
+ 0510 0AC0              rjmp L69
+ 0512           L66:
+ 0512                   .dbline 175
+ 0512           ;                        {
+ 0512                   .dbline 176
+ 0512           ;                         TransmitByte(VER[i]);
+ 0512 8C2F              mov R24,R28
+ 0514 9D2F              mov R25,R29
+ 0516 E42F              mov R30,R20
+ 0518 F52F              mov R31,R21
+ 051A E80F              add R30,R24
+ 051C F91F              adc R31,R25
+ 051E 0081              ldd R16,z+0
+ 0520 E6DD              rcall _TransmitByte
+ 0522                   .dbline 177
+ 0522           ;                        }
+ 0522           L67:
+ 0522                   .dbline 174
+ 0522 4F5F              subi R20,255  ; offset = 1
+ 0524 5F4F              sbci R21,255
+ 0526           L69:
+ 0526                   .dbline 174
+ 0526 8C2F              mov R24,R28
+ 0528 9D2F              mov R25,R29
+ 052A E42F              mov R30,R20
+ 052C F52F              mov R31,R21
+ 052E E80F              add R30,R24
+ 0530 F91F              adc R31,R25
+ 0532 2080              ldd R2,z+0
+ 0534 2220              tst R2
+ 0536 69F7              brne L66
+ 0538           X17:
+ 0538                   .dbline 181
+ 0538           ;                        
+ 0538           ;                        
+ 0538           ;               
+ 0538           ;               break;
+ 0538           L44:
+ 0538                   .dbline 185
+ 0538           ;                       
+ 0538           ;               
+ 0538           ;                       
+ 0538           ;               default:;
+ 0538                   .dbline 186
+ 0538           ;               }
+ 0538           L45:
+ 0538                   .dbline 187
+ 0538           ;       }
+ 0538           L40:
+ 0538                   .dbline 86
+ 0538 EFCE              rjmp L39
+ 053A           X18:
+ 053A                   .dbline -2
+ 053A           L37:
+ 053A                   .dbline 0 ; func end
+ 053A 6096              adiw R28,16
+ 053C 0895              ret
+ 053E                   .dbsym l VER 0 A[16:16]c
+ 053E                   .dbsym r i 20 I
+ 053E                   .dbend
+                        .area bss(ram, con, rel)
+ 0000                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\Angel_Speed.c
+ 0000           _UART_TxTail:
+ 0000                   .blkb 1
+ 0001                   .dbfile D:\AVR_Work\“斯科达”展示上用的AVR程序\sensor_avr\uartintr.h
+ 0001                   .dbsym s UART_TxTail _UART_TxTail c
+ 0001           _UART_TxHead:
+ 0001                   .blkb 1
+ 0002                   .dbsym s UART_TxHead _UART_TxHead c
+ 0002           _UART_TxBuf:
+ 0002                   .blkb 128
+ 0082                   .dbsym s UART_TxBuf _UART_TxBuf A[128:128]c
+ 0082           _UART_RxTail:
+ 0082                   .blkb 1
+ 0083                   .dbsym s UART_RxTail _UART_RxTail c
+ 0083           _UART_RxHead:
+ 0083                   .blkb 1
+ 0084                   .dbsym s UART_RxHead _UART_RxHead c
+ 0084           _UART_RxBuf:
+ 0084                   .blkb 128
+ 0104                   .dbsym s UART_RxBuf _UART_RxBuf A[128:128]c
+ 0104           ;       /*  Orientation=DectectOrientation();
+ 0104           ;       if(flag)
+ 0104           ;       {
+ 0104           ;       flag = 0;
+ 0104           ;       CurrentCountNum =DataH*256 + DataL;
+ 0104           ;       if(CurrentCountNum>=PreCountNum)        
+ 0104           ;       {
+ 0104           ;       SubNum = CurrentCountNum - PreCountNum;
+ 0104           ;       }
+ 0104           ;       else
+ 0104           ;       {
+ 0104           ;       SubNum = CurrentCountNum + 65536 - PreCountNum;
+ 0104           ;       }
+ 0104           ; 
+ 0104           ;       if(Orientation)
+ 0104           ;       angle +=SubNum;
+ 0104           ;       else
+ 0104           ;       angle -=SubNum;
+ 0104           ; 
+ 0104           ;       PreCountNum = CurrentCountNum;
+ 0104           ;       }
+ 0104           ;       }*/
+ 0104           ; }
