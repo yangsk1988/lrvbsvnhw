@@ -1,13 +1,19 @@
 #请将硬件开发过程中遇到的问题，以及解决的方法，今后应该注意的方面写在这里.
-
-= 标题1 =
-
-== 标题2 ==
+如果您想对本文有所贡献，请点击上方的“edit this page”来对本页面进行修改。
+如果想进行评论，在下方有“comment”框，可以提交你们的评论。
 
 
-= Details =
+= 标题1：我的实验是名称，目的是什么 =
+如何实现
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+
+== 标题2：用什么器件，原理？ ==
+
+
+== Details ==
+
+如何展开实验，遇到了什么问题，是设计问题，还是实施过程中的问题？
+
+
+我是怎么解决这些问题的？
+从实验中我得到的怎样的经验，今后的同学们应该注意哪些方面。
